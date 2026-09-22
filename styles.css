@@ -291,3 +291,35 @@ h1.title { font-family: var(--font-title); font-weight: 400; font-size: 34px; li
 .answer-pill strong { color: var(--ink); }
 .lines.solved-text { font-size: 16px; color: var(--ink-soft); }
 .lines.solved-text p { margin-bottom: 2px; }
+
+/* ---------- Carta (texto de Google Docs) ---------- */
+.letter-slot:empty { display: none; }
+.letter {
+  position: relative; margin-top: 12px; padding: 26px 20px 18px;
+  background: linear-gradient(#fffaf0, #fbf0d8);
+  border: 2px solid var(--ink-soft); border-radius: 6px 18px 6px 18px;
+  box-shadow: inset 0 0 30px rgba(160,110,50,.15);
+  font-size: 18px; line-height: 1.6;
+  animation: unroll .5s cubic-bezier(.2,.8,.2,1) both; transform-origin: top;
+}
+@keyframes unroll { from { opacity: 0; transform: scaleY(.6); } }
+.letter p { margin: 0 0 16px; overflow-wrap: anywhere; }
+.letter p:last-of-type { margin-bottom: 8px; }
+.letter .letter-greet { font-family: var(--font-title); font-size: 28px; line-height: 1.1; color: var(--red); }
+.letter-seal { position: absolute; top: -14px; right: 14px; font-size: 26px; transform: rotate(10deg); }
+.letter-link { display: inline-block; margin-top: 4px; font-size: 14px; color: var(--ink-soft); }
+.letter-loading { margin-top: 12px; text-align: center; color: var(--ink-soft); font-weight: 600; padding: 14px; display: grid; gap: 10px; }
+
+/* ---------- Reiniciar / confirmación ---------- */
+.bp-footer { margin-top: 22px; padding-top: 14px; border-top: 2px dashed var(--ink-soft); }
+.overlay.center { align-items: center; padding: var(--gutter); }
+.dialog {
+  width: 100%; max-width: 380px; text-align: center;
+  background: var(--paper-hi); border: 3px solid var(--ink); border-radius: var(--radius);
+  padding: 22px 20px 20px; box-shadow: 0 6px 0 var(--ink);
+  animation: rise .3s cubic-bezier(.2,.8,.2,1) both;
+}
+.dialog-icon { font-size: 40px; line-height: 1; }
+.dialog h2 { font-family: var(--font-title); font-weight: 400; font-size: 32px; color: var(--red); margin: 6px 0 8px; }
+.dialog p { margin: 0 0 18px; }
+.dialog-actions { display: grid; gap: 10px; }

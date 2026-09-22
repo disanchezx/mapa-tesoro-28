@@ -98,11 +98,18 @@ function messageCard(id) {
   if (m.type === 'audio' && m.src) {
     return `<div class="msg">${head('🎧')}<audio controls preload="metadata" src="${esc(m.src)}"></audio></div>`;
   }
+  if (m.type === 'doc' && m.src && docId(m.src)) {
+    // Google Doc: se lee el texto y se muestra como carta dentro de la app
+    return `<div class="msg">${head('📜')}
+      <button class="btn teal block" data-letter="${esc(id)}">Leer carta 📜</button>
+      <div class="letter-slot"></div>
+    </div>`;
+  }
   if (m.type === 'doc' && m.src) {
-    const isFile = m.src.includes('drive.google.com/file');
-    return `<div class="msg">${head(isFile ? '💌' : '📜')}
-      <a class="btn teal" href="${esc(m.src)}" target="_blank" rel="noopener">${isFile ? 'Abrir mensaje 💌' : 'Abrir carta 📜'}</a>
-      <button class="btn ghost block doc-toggle" data-doc="${esc(docPreview(m.src))}">Leer aquí</button>
+    // archivo de Drive (audio/video/pdf): se abre con el visor de Drive
+    return `<div class="msg">${head('💌')}
+      <a class="btn teal" href="${esc(m.src)}" target="_blank" rel="noopener">Abrir mensaje 💌</a>
+      <button class="btn ghost block doc-toggle" data-doc="${esc(docPreview(m.src))}">Ver aquí</button>
     </div>`;
   }
   return `<div class="msg pending">${head('💌')}<div class="note">Mensaje de ${esc(m.name)} – pendiente. Llegará a tu mochila 🎒</div></div>`;
@@ -117,15 +124,80 @@ function messagesBlock(step) {
   return `<p class="kicker" style="margin-top:6px">${title}</p>${label}<div class="messages">${ids.map(messageCard).join('')}</div>`;
 }
 
+// ---------- Cartas (texto de Google Docs) ----------
+const docId = (src) => (src.match(/docs\.google\.com\/document\/d\/([\w-]+)/) || [])[1];
+const LETTER_KEY = (id) => 'carta-' + id;
+
+async function fetchLetter(src) {
+  const id = docId(src);
+  const res = await fetch(`https://docs.google.com/document/d/${id}/export?format=txt`);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const text = (await res.text()).replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim();
+  if (!text) throw new Error('vacía');
+  try { localStorage.setItem(LETTER_KEY(id), text); } catch {}
+  return text;
+}
+
+function cachedLetter(src) {
+  try { return localStorage.getItem(LETTER_KEY(docId(src))); } catch { return null; }
+}
+
+// Descarga en segundo plano todas las cartas, por si en el museo no hay señal
+function prefetchLetters() {
+  for (const m of Object.values(MESSAGES)) {
+    if (m.type === 'doc' && m.src && docId(m.src)) fetchLetter(m.src).catch(() => {});
+  }
+}
+
+function letterHtml(text, m) {
+  const paras = text.split(/\n\s*\n+/).map((p) => p.trim()).filter(Boolean);
+  const body = paras.map((p, i) => {
+    const html = esc(p).replace(/\n/g, '<br>');
+    const greet = i === 0 && p.length < 70 && /[,:]$/.test(p);
+    return `<p${greet ? ' class="letter-greet"' : ''}>${html}</p>`;
+  }).join('');
+  return `<article class="letter">
+    <div class="letter-seal" aria-hidden="true">💌</div>
+    ${body}
+    <a class="letter-link" href="${esc(m.src)}" target="_blank" rel="noopener">Ver en Google Docs ↗</a>
+  </article>`;
+}
+
+function wireLetters(root) {
+  root.querySelectorAll('[data-letter]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      const m = MESSAGES[b.dataset.letter];
+      const slot = b.nextElementSibling;
+      if (slot.innerHTML) { slot.innerHTML = ''; b.textContent = 'Leer carta 📜'; return; }
+      b.textContent = 'Cerrar carta ✕';
+      const cached = cachedLetter(m.src);
+      if (cached) {
+        slot.innerHTML = letterHtml(cached, m);
+        fetchLetter(m.src).catch(() => {}); // refresca por si la editaron
+        return;
+      }
+      slot.innerHTML = `<div class="letter-loading">Desenrollando el pergamino… 🗞️</div>`;
+      try {
+        const text = await fetchLetter(m.src);
+        if (slot.isConnected && slot.innerHTML) slot.innerHTML = letterHtml(text, m);
+      } catch {
+        slot.innerHTML = `<div class="letter-loading">No pude cargar la carta aquí 😕<br>
+          <a class="btn ghost block" href="${esc(m.src)}" target="_blank" rel="noopener">Abrirla en Google Docs</a></div>`;
+      }
+    });
+  });
+}
+
 function wireDocToggles(root) {
+  wireLetters(root);
   root.querySelectorAll('[data-doc]').forEach((b) => {
     b.addEventListener('click', () => {
       const existing = b.nextElementSibling;
-      if (existing?.tagName === 'IFRAME') { existing.remove(); b.textContent = 'Leer aquí'; return; }
+      if (existing?.tagName === 'IFRAME') { existing.remove(); b.textContent = 'Ver aquí'; return; }
       const f = document.createElement('iframe');
       f.className = 'doc-frame';
       f.src = b.dataset.doc;
-      f.title = 'Carta';
+      f.title = 'Mensaje';
       b.after(f);
       b.textContent = 'Cerrar vista';
     });
@@ -421,7 +493,10 @@ function viewFinale(step) {
     <div class="chest" aria-hidden="true">💰</div>
     <h1 class="title">${esc(step.title)}</h1>
     ${lines(step.text)}
-    <div class="answer"><button class="btn block" id="openBp" style="background:var(--purple)">🎒 Abrir mi mochila</button></div>
+    <div class="answer">
+      <button class="btn block" id="openBp" style="background:var(--purple)">🎒 Abrir mi mochila</button>
+      <button class="btn ghost block" data-reset>🔄 Reiniciar ruta</button>
+    </div>
   </section>`;
 }
 
@@ -449,7 +524,7 @@ function render() {
 document.addEventListener('keydown', (e) => {
   const step = current();
   if (step.type !== 'hangman' || e.metaKey || e.ctrlKey || e.altKey) return;
-  if (!$('#backpack').hidden || !$('#admin').hidden) return;
+  if ([...document.querySelectorAll('.overlay')].some((o) => !o.hidden)) return;
   const k = e.key.toLowerCase();
   if (/^[a-zñ]$/.test(k)) guessLetter(step, k);
 });
@@ -469,6 +544,7 @@ function openBackpack() {
     list.innerHTML = blocks;
     wireDocToggles(list);
   }
+  list.insertAdjacentHTML('beforeend', `<div class="bp-footer"><button class="btn ghost block" data-reset>🔄 Reiniciar ruta</button></div>`);
   $('#backpack').hidden = false;
 }
 
@@ -481,6 +557,33 @@ document.querySelectorAll('.overlay').forEach((ov) => {
   ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) closeOverlay(ov); });
 });
 $('#backpackBtn').addEventListener('click', openBackpack);
+
+// ---------- Reiniciar ruta (con confirmación) ----------
+// El diálogo se crea aquí (no en index.html) para no depender de un index.html en caché
+document.body.insertAdjacentHTML('beforeend', `
+  <div class="overlay center" id="confirm" hidden>
+    <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="cfTitle" aria-describedby="cfText">
+      <div class="dialog-icon" aria-hidden="true">🧭</div>
+      <h2 id="cfTitle">¿Estás segura?</h2>
+      <p id="cfText">Vas a reiniciar la ruta desde el principio. Se borrará tu progreso, y los acertijos y mensajes volverán a quedar escondidos.</p>
+      <div class="dialog-actions">
+        <button class="btn teal block" id="confirmNo">No, seguir mi aventura</button>
+        <button class="btn ghost block" id="confirmYes">Sí, reiniciar ruta</button>
+      </div>
+    </div>
+  </div>`);
+$('#confirm').addEventListener('click', (e) => { if (e.target.id === 'confirm') closeOverlay($('#confirm')); });
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-reset]')) $('#confirm').hidden = false;
+});
+$('#confirmYes').addEventListener('click', () => {
+  state = fresh();
+  save();
+  document.querySelectorAll('.overlay').forEach(closeOverlay);
+  render();
+  window.scrollTo({ top: 0 });
+});
+$('#confirmNo').addEventListener('click', () => closeOverlay($('#confirm')));
 
 // ---------- Modo Diego ----------
 let taps = [];
@@ -537,3 +640,4 @@ function adminAction(a, btn) {
 if (new URLSearchParams(location.search).has('diego')) setTimeout(openAdmin, 300);
 
 render();
+prefetchLetters();
