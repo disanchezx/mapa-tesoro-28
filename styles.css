@@ -323,3 +323,11 @@ h1.title { font-family: var(--font-title); font-weight: 400; font-size: 34px; li
 .dialog h2 { font-family: var(--font-title); font-weight: 400; font-size: 32px; color: var(--red); margin: 6px 0 8px; }
 .dialog p { margin: 0 0 18px; }
 .dialog-actions { display: grid; gap: 10px; }
+
+/* ---------- Pista del lugar (ahorcado) ---------- */
+.place-clue {
+  display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px;
+  padding: 12px 14px; border-radius: 14px; background: #e3f3f1; border: 2px solid var(--teal);
+  font-weight: 600; font-style: italic; color: var(--teal-dk);
+}
+.place-clue span:first-child { font-style: normal; font-size: 22px; line-height: 1.1; }

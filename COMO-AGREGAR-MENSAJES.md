@@ -1,26 +1,30 @@
 # Cómo agregar un mensaje nuevo
 
-Todo el contenido vive en **`config.js`**. Cada mensaje es una línea dentro de `MESSAGES`:
+> **Forma normal (en el computador):** edita la tabla **Mensajes** de `mapa-del-tesoro-28.md` y corre `node tools/sync-doc.mjs`, que regenera `config.js`. Ver la § 5 de ese documento.
+>
+> **Forma urgente (desde el celular, el día del juego):** edita `config.js` directo en github.com como se explica abajo. Después, replica el cambio en el documento para que la próxima sincronización no lo borre.
+
+En `config.js` cada mensaje es un bloque dentro de `MESSAGES`:
 
 ```js
-milton: { name: 'Milton', relation: 'Hermano', type: 'pending', src: '' },
+"milton": { "name": "Milton", "relation": "Hermano", "type": "pending", "src": "" },
 ```
 
 Para "activar" un mensaje, cambia `type` y `src`:
 
 | Qué llegó | `type` | `src` |
 |---|---|---|
-| Carta en Google Docs | `'doc'` | el link del Doc (compartido como "Cualquier persona con el enlace"). La app lee el texto y lo muestra como carta en pergamino. |
-| Audio que ya convertiste a .m4a (ver abajo) | `'audio'` | `'audio/milton.m4a'` |
-| Audio/video en Drive (plan B desde el celular) | `'doc'` | el link de Drive. Se muestra como botón "Abrir mensaje 💌" |
+| Carta en Google Docs | `"doc"` | el link del Doc (compartido como "Cualquier persona con el enlace"). La app lee el texto y lo muestra como carta en pergamino. |
+| Audio que ya convertiste a .m4a (ver abajo) | `"audio"` | `"audio/milton.m4a"` |
+| Audio/video en Drive (plan B desde el celular) | `"doc"` | el link de Drive. Se muestra como botón "Abrir mensaje 💌" |
 
 Ejemplo:
 
 ```js
-milton: { name: 'Milton', relation: 'Hermano', type: 'doc', src: 'https://docs.google.com/document/d/XXXX/edit' },
+"milton": { "name": "Milton", "relation": "Hermano", "type": "doc", "src": "https://docs.google.com/document/d/XXXX/edit" },
 ```
 
-Cuida las comillas `'...'` y la coma final.
+Cuida las comillas `"..."` y las comas.
 
 ## Desde el celular (el día del juego)
 1. Abre el repo en github.com → `config.js` → ✏️ (Edit).
@@ -37,9 +41,7 @@ git add -A && git commit -m "Mensaje de Milton" && git push
 ```
 
 ## Crucigrama y puzzle 5
-En `config.js` busca `TODO DIEGO`:
-- **Crucigrama:** la letra de la fila en la posición `key` (empezando en 0) debe formar SIEMPRE de arriba hacia abajo. El test lo verifica.
-- **Puzzle 5 (`e3-pareja`):** llena el texto y las respuestas y cambia `enabled: false` → `true`.
+Se editan en `mapa-del-tesoro-28.md` (sección 7, Estación 3). Después corre `node tools/sync-doc.mjs`, que avisa si la columna del crucigrama no forma SIEMPRE.
 
 ## Modo Diego (en el juego)
 Toca **5 veces la brújula** (o abre la URL con `?diego=1`). Desde ahí puedes:

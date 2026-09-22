@@ -8,7 +8,7 @@ const FLOW = STATIONS.flatMap((st, si) =>
 
 // ---------- Estado persistente ----------
 const KEY = 'mapa-tesoro-28-v1';
-const fresh = () => ({ pos: 0, maxPos: 0, unlocked: [], solved: {}, hints: {}, guessed: {}, cw: {} });
+const fresh = () => ({ pos: 0, maxPos: 0, revealed: {}, unlocked: [], solved: {}, hints: {}, guessed: {}, cw: {} });
 let state = load();
 
 function load() {
@@ -87,13 +87,22 @@ function confetti() {
 // ---------- Mensajes ----------
 const docPreview = (src) => src.replace(/\/(edit|view)([?#].*)?$/, '/preview');
 
-function messageCard(id) {
+// Un mensaje es secreto (sin nombre) hasta que Grace lo ve por primera vez y sigue la aventura
+const UNLOCKED_BY = Object.fromEntries(
+  FLOW.flatMap((s) => (s.unlocks || []).map((id) => [id, s.id]))
+);
+const isSecret = (id) => !state.revealed?.[UNLOCKED_BY[id]];
+
+function messageCard(id, n = 0) {
   const m = MESSAGES[id];
   if (!m) return '';
+  const secret = isSecret(id);
+  const name = secret ? `Mensaje secreto${n ? ' #' + n : ''}` : m.name;
+  const rel = secret ? '¿Adivinas de quién es? 🤫' : m.relation;
   const head = (icon) => `
     <div class="msg-head">
-      <div class="msg-icon" aria-hidden="true">${icon}</div>
-      <div><div class="msg-name">${esc(m.name)}</div><div class="msg-rel">${esc(m.relation)}</div></div>
+      <div class="msg-icon" aria-hidden="true">${secret ? '🤫' : icon}</div>
+      <div><div class="msg-name">${esc(name)}</div><div class="msg-rel">${esc(rel)}</div></div>
     </div>`;
   if (m.type === 'audio' && m.src) {
     return `<div class="msg">${head('🎧')}<audio controls preload="metadata" src="${esc(m.src)}"></audio></div>`;
@@ -112,16 +121,18 @@ function messageCard(id) {
       <button class="btn ghost block doc-toggle" data-doc="${esc(docPreview(m.src))}">Ver aquí</button>
     </div>`;
   }
-  return `<div class="msg pending">${head('💌')}<div class="note">Mensaje de ${esc(m.name)} – pendiente. Llegará a tu mochila 🎒</div></div>`;
+  const note = secret ? 'Este mensaje aún viene en camino. Llegará a tu mochila 🎒' : `Mensaje de ${esc(m.name)} – pendiente. Llegará a tu mochila 🎒`;
+  return `<div class="msg pending">${head('💌')}<div class="note">${note}</div></div>`;
 }
 
 function messagesBlock(step) {
   if (!step.unlocks?.length) return '';
-  const label = step.groupLabel ? `<div class="group-label">${esc(step.groupLabel)}</div>` : '';
+  const secret = !state.revealed?.[step.id];
+  const label = step.groupLabel && !secret ? `<div class="group-label">${esc(step.groupLabel)}</div>` : '';
   // primero los que ya llegaron, luego los pendientes
   const ids = [...step.unlocks].sort((a, b) => (MESSAGES[a]?.type === 'pending') - (MESSAGES[b]?.type === 'pending'));
   const title = step.unlocks.length > 1 ? '¡Desbloqueaste mensajes!' : '¡Desbloqueaste un mensaje!';
-  return `<p class="kicker" style="margin-top:6px">${title}</p>${label}<div class="messages">${ids.map(messageCard).join('')}</div>`;
+  return `<p class="kicker" style="margin-top:6px">${title}</p>${label}<div class="messages">${ids.map((id, i) => messageCard(id, ids.length > 1 ? i + 1 : 0)).join('')}</div>`;
 }
 
 // ---------- Cartas (texto de Google Docs) ----------
@@ -362,6 +373,7 @@ function viewHangman(step) {
   return `<section class="card" id="card">
     <p class="kicker">Siguiente destino</p>
     <h1 class="title">${esc(step.title)}</h1>
+    ${step.clue ? `<div class="place-clue"><span aria-hidden="true">🧭</span><span>${esc(step.clue)}</span></div>` : ''}
     ${lines(step.text)}
     <div class="board">${board}</div>
     <div class="coins">${coins}</div>
@@ -508,7 +520,10 @@ function render() {
   const views = { intro: viewIntro, gate: viewIntro, riddle: viewRiddle, hangman: viewHangman, crossword: viewCrossword, finale: viewFinale };
   screen.innerHTML = (views[step.type] || viewIntro)(step) + navBar();
   lastGuess = null;
-  $('#go')?.addEventListener('click', next);
+  $('#go')?.addEventListener('click', () => {
+    if (state.solved[step.id] && step.unlocks?.length) { state.revealed = { ...state.revealed, [step.id]: true }; }
+    next();
+  });
   $('#navBack')?.addEventListener('click', () => go(state.pos - 1));
   $('#navLatest')?.addEventListener('click', () => go(state.maxPos));
   $('#openBp')?.addEventListener('click', openBackpack);
@@ -539,7 +554,7 @@ function openBackpack() {
     const blocks = STATIONS.map((st) => {
       const ids = st.steps.flatMap((s) => s.unlocks || []).filter((id) => state.unlocked.includes(id));
       if (!ids.length) return '';
-      return `<div class="group-label">${st.icon} ${esc(st.place)}</div><div class="messages">${ids.map(messageCard).join('')}</div>`;
+      return `<div class="group-label">${st.icon} ${esc(st.place)}</div><div class="messages">${ids.map((id) => messageCard(id)).join('')}</div>`;
     }).join('');
     list.innerHTML = blocks;
     wireDocToggles(list);
