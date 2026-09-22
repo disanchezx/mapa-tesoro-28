@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#f3e2bd" />
+  <meta name="color-scheme" content="light" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Mapa del Tesoro" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>Mapa del Tesoro</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Pirata+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <button class="compass" id="compass" aria-label="Brújula">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="29" fill="var(--paper-hi)" stroke="var(--ink)" stroke-width="3"/>
+        <circle cx="32" cy="32" r="23" fill="none" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="2 4"/>
+        <g class="needle">
+          <path d="M32 8 L38 32 L32 30 L26 32 Z" fill="var(--red)"/>
+          <path d="M32 56 L26 32 L32 34 L38 32 Z" fill="var(--ink)"/>
+        </g>
+        <circle cx="32" cy="32" r="3.5" fill="var(--gold)" stroke="var(--ink)" stroke-width="1.5"/>
+      </svg>
+    </button>
+    <div class="brand">
+      <span class="brand-small">Mapa del Tesoro</span>
+      <span class="brand-big">Grace la Exploradora</span>
+    </div>
+    <button class="backpack" id="backpackBtn" aria-label="Abrir mochila">
+      <span aria-hidden="true">🎒</span>
+      <span class="badge" id="backpackCount">0</span>
+    </button>
+  </header>
+
+  <nav class="trail" id="trail" aria-label="Progreso"></nav>
+
+  <main id="screen" class="screen" aria-live="polite"></main>
+
+  <div class="overlay" id="backpack" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="bpTitle">
+      <div class="sheet-head">
+        <h2 id="bpTitle">🎒 Mi mochila</h2>
+        <button class="close" data-close aria-label="Cerrar">✕</button>
+      </div>
+      <div id="backpackList" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="admin" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="adTitle">
+      <div class="sheet-head">
+        <h2 id="adTitle">🧭 Modo Diego</h2>
+        <button class="close" data-close aria-label="Cerrar">✕</button>
+      </div>
+      <div id="adminBody" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
