@@ -31,8 +31,9 @@ const lines = all.slice(start + 1, end).map((text, i) => ({ text, n: start + 2 +
 const ticks = (s) => [...s.matchAll(/`([^`]*)`/g)].map((m) => m[1]);
 const FIELD = /^- \*\*(.+?):\*\*\s*(.*)$/;
 
-let section = null; // 'mensajes' | 'estacion'
+let section = null; // 'mensajes' | 'carga' | 'estacion'
 const MESSAGES = {};
+const loaderFields = {};
 const STATIONS = [];
 let station = null;
 let step = null;
@@ -50,6 +51,7 @@ for (const { text, n } of lines) {
   if (/^## /.test(t)) {
     if (station) { closeStep(); STATIONS.push(station); station = null; }
     if (/^## Mensajes/i.test(t)) { section = 'mensajes'; continue; }
+    if (/^## Pantalla de carga/i.test(t)) { section = 'carga'; field = null; continue; }
     const m = t.match(/^## Estación\s+\d+\s*·\s*(.+)$/);
     if (!m) { fail(n, `encabezado desconocido: "${t}"`); section = null; continue; }
     section = 'estacion';
@@ -67,6 +69,13 @@ for (const { text, n } of lines) {
     const link = (src.match(/\((https?:[^)]+)\)/) || [])[1] || src.replace(/`/g, '');
     if (type !== 'pending' && !link) fail(n, `el mensaje "${id}" es ${tipo} pero no tiene archivo/link`);
     MESSAGES[id] = { name, relation, type, src: type === 'pending' ? '' : link };
+    continue;
+  }
+
+  if (section === 'carga') {
+    const f = t.match(FIELD);
+    if (f) { field = loaderFields[f[1].trim().toLowerCase()] = { value: f[2].trim(), sub: [], line: n }; continue; }
+    if (/^\s{2,}\S/.test(text) && field) field.sub.push({ text: text.trim(), n });
     continue;
   }
 
@@ -157,6 +166,8 @@ function buildStep(raw, stationName) {
     for (const id of s.unlocks) if (!MESSAGES[id]) fail(F['desbloquea'].line, `"${id}" no está en la tabla de Mensajes`);
   }
   if (get('grupo')) s.groupLabel = get('grupo');
+  if (get('imagen')) s.image = get('imagen');
+  if (get('nota')) s.note = get('nota');
   return s;
 }
 
@@ -167,6 +178,7 @@ const stationsOut = STATIONS.map((st) => {
     name: st.name,
     place: get('lugar'),
     icon: get('icono'),
+    ...(get('imagen de carga') ? { loaderImage: get('imagen de carga') } : {}),
     steps: st.steps.map((raw) => buildStep(raw, st.name)).filter(Boolean),
   };
 });
@@ -175,6 +187,13 @@ const ids = stationsOut.flatMap((s) => s.steps.map((x) => x.id));
 const dup = ids.filter((id, i) => ids.indexOf(id) !== i);
 if (dup.length) errors.push(`ids de pasos repetidos: ${dup.join(', ')}`);
 if (!stationsOut.length) errors.push('no se encontró ninguna estación');
+
+const LOADER = {
+  title: loaderFields['título']?.value || '¡Vámonos, exploradora!',
+  duration: Number(loaderFields['duración']?.value?.replace(/[^\d]/g, '')) || 2200,
+  phrases: (loaderFields['frases']?.sub ?? []).map((x) => x.text.replace(/^-\s*/, '')).filter(Boolean),
+};
+if (!LOADER.phrases.length) LOADER.phrases = ['Revisando el mapa… 🗺️'];
 
 if (errors.length) {
   console.error('✗ El documento tiene errores:\n  ' + errors.join('\n  '));
@@ -190,6 +209,8 @@ const js = `// ============================================================
 // ============================================================
 
 export const MESSAGES = ${JSON.stringify(MESSAGES, null, 2)};
+
+export const LOADER = ${JSON.stringify(LOADER, null, 2)};
 
 export const STATIONS = ${JSON.stringify(stationsOut, null, 2)};
 `;

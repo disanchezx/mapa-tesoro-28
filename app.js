@@ -1,4 +1,6 @@
-import { MESSAGES, STATIONS } from './config.js';
+import * as CONFIG from './config.js';
+const { MESSAGES, STATIONS } = CONFIG;
+const LOADER = CONFIG.LOADER || { title: '¡Vámonos, exploradora!', duration: 2200, phrases: ['Revisando el mapa… 🗺️'] };
 import { check, matches, baseLetter, isLetter, hangmanStatus } from './logic.js';
 
 // ---------- Flujo ----------
@@ -501,15 +503,57 @@ function wireCrossword(step) {
 }
 
 function viewFinale(step) {
-  return `<section class="card" style="text-align:center">
-    <div class="chest" aria-hidden="true">💰</div>
+  const picture = step.image
+    ? `<div class="finale-frame"><img src="${esc(step.image)}" alt="Diego y Grace, exploradores"></div>`
+    : `<div class="chest" aria-hidden="true">💰</div>`;
+  return `<section class="card finale">
+    ${picture}
     <h1 class="title">${esc(step.title)}</h1>
-    ${lines(step.text)}
+    <article class="letter finale-letter">
+      <div class="letter-seal" aria-hidden="true">❤️</div>
+      ${(step.text || []).map((l) => `<p>${esc(l)}</p>`).join('')}
+    </article>
     <div class="answer">
       <button class="btn block" id="openBp" style="background:var(--purple)">🎒 Abrir mi mochila</button>
       <button class="btn ghost block" data-reset>🔄 Reiniciar ruta</button>
     </div>
+    ${step.note ? `<p class="finale-note">${esc(step.note)}</p>` : ''}
   </section>`;
+}
+
+// ---------- Pantalla de carga ----------
+let loaderCount = 0;
+function showLoader(image) {
+  if (!image) return;
+  document.querySelector('.loader')?.remove();
+  const el = document.createElement('div');
+  el.className = 'loader';
+  el.setAttribute('role', 'status');
+  el.style.setProperty('--dur', LOADER.duration + 'ms');
+  const phrase = LOADER.phrases[loaderCount++ % LOADER.phrases.length];
+  el.innerHTML = `
+    <div class="loader-frame"><img src="${esc(image)}" alt=""></div>
+    <p class="loader-title">${esc(LOADER.title)}</p>
+    <div class="loader-phrase">${esc(phrase)}</div>
+    <div class="loader-path" aria-hidden="true"><div class="fill"></div><span class="walker">🧭</span><span class="x">❌</span></div>
+    <div class="loader-skip">Toca para continuar</div>`;
+  document.body.appendChild(el);
+  const close = () => { el.classList.add('out'); setTimeout(() => el.remove(), 350); };
+  const t = setTimeout(close, reduceMotion ? Math.min(LOADER.duration, 1200) : LOADER.duration);
+  el.addEventListener('click', () => { clearTimeout(t); close(); });
+}
+
+// Avanza con pantalla de carga (la imagen depende de la estación a la que se llega)
+function advance() {
+  const target = FLOW[state.pos + 1];
+  if (target) showLoader(STATIONS[target.si].loaderImage);
+  next();
+}
+
+// Precarga las imágenes para que la pantalla de carga salga al instante
+function preloadImages() {
+  const srcs = new Set([...STATIONS.map((s) => s.loaderImage), ...FLOW.map((s) => s.image)].filter(Boolean));
+  for (const src of srcs) { const i = new Image(); i.src = src; }
 }
 
 // ---------- Render ----------
@@ -522,7 +566,7 @@ function render() {
   lastGuess = null;
   $('#go')?.addEventListener('click', () => {
     if (state.solved[step.id] && step.unlocks?.length) { state.revealed = { ...state.revealed, [step.id]: true }; }
-    next();
+    advance();
   });
   $('#navBack')?.addEventListener('click', () => go(state.pos - 1));
   $('#navLatest')?.addEventListener('click', () => go(state.maxPos));
@@ -656,3 +700,4 @@ if (new URLSearchParams(location.search).has('diego')) setTimeout(openAdmin, 300
 
 render();
 prefetchLetters();
+preloadImages();

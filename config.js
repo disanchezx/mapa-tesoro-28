@@ -117,12 +117,26 @@ export const MESSAGES = {
   }
 };
 
+export const LOADER = {
+  "title": "¡Vámonos, exploradora!",
+  "duration": 2200,
+  "phrases": [
+    "Revisando el mapa… 🗺️",
+    "Siguiendo las huellas… 👣",
+    "Preguntándole a la brújula… 🧭",
+    "Abriendo la mochila… 🎒",
+    "Buscando la próxima pista… 🔍",
+    "¡Vámonos, vámonos! ⛵"
+  ]
+};
+
 export const STATIONS = [
   {
     "id": "causa",
     "name": "La Carta",
     "place": "La Causa",
     "icon": "🍽️",
+    "loaderImage": "img/grace-exploradora.jpg",
     "steps": [
       {
         "type": "intro",
@@ -208,6 +222,7 @@ export const STATIONS = [
     "name": "Las Obras",
     "place": "MAMM",
     "icon": "🎨",
+    "loaderImage": "img/grace-exploradora.jpg",
     "steps": [
       {
         "type": "intro",
@@ -545,6 +560,7 @@ export const STATIONS = [
     "name": "La Relación",
     "place": "Pergamino",
     "icon": "☕",
+    "loaderImage": "img/grace-y-diego.jpg",
     "steps": [
       {
         "type": "intro",
@@ -738,9 +754,12 @@ export const STATIONS = [
         "id": "finale",
         "title": "¡Feliz cumpleaños 28, Grace!",
         "text": [
-          "Encontraste el tesoro: todas las personas que te quieren, en un solo mapa.",
-          "Todos tus mensajes quedan guardados en tu mochila 🎒 para escucharlos cuando quieras."
-        ]
+          "Mi amor, espero que esta aventura haya sido de tu agrado.",
+          "Espero pasar mil aventuras más a tu lado.",
+          "Te amo y Feliz Cumpleaños 28"
+        ],
+        "image": "img/diego-y-grace.jpg",
+        "note": "Todos tus mensajes quedan guardados en tu mochila 🎒 para escucharlos cuando quieras."
       }
     ]
   }
