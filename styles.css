@@ -280,3 +280,14 @@ h1.title { font-family: var(--font-title); font-weight: 400; font-size: 34px; li
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- Navegación atrás / respuesta ---------- */
+.nav-row { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
+.nav-row .btn { flex: 0 1 auto; min-height: 44px; padding: 6px 14px; }
+.answer-pill {
+  display: inline-block; margin: 4px 0 12px; padding: 6px 14px; border-radius: 999px;
+  background: #fff; border: 2px solid var(--teal); color: var(--teal-dk); font-size: 16px;
+}
+.answer-pill strong { color: var(--ink); }
+.lines.solved-text { font-size: 16px; color: var(--ink-soft); }
+.lines.solved-text p { margin-bottom: 2px; }

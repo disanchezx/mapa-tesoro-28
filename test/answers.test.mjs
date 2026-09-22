@@ -28,7 +28,9 @@ const byId = Object.fromEntries(steps.map((s) => [s.id, s]));
 const cases = [
   ['e1-poke', 'Poké', 'ok'], ['e1-poke', 'poke bowl', 'ok'], ['e1-poke', '¿Por qué?', 'near'],
   ['e2-andres', 'Talleres Robledo', 'ok'], ['e2-mariaisabel', 'González', 'ok'],
-  ['e2-sobrinos1', 'Fluvial', 'ok'], ['e2-sobrinos1', 'Kim Jong-un', 'near'],
+  ['e2-sobrinos1', 'Kim Jong-un', 'ok'], ['e2-sobrinos1', 'Dictador de Korea del Norte', 'ok'],
+  ['e2-sobrinos1', 'el dictador de corea del norte', 'ok'], ['e2-sobrinos1', 'sería dictador jaja', 'ok'],
+  ['e2-sobrinos1', 'Kim', 'near'], ['e2-sobrinos1', 'Kim Kardashian', 'near'], ['e2-sobrinos1', 'fluvial', 'wrong'],
   ['e2-diegohermano', 'Pedro', 'ok'], ['e2-diegohermano', 'Gómez-Egaña', 'near'],
   ['e2-elizabeth', '5', 'ok'], ['e2-elizabeth', '250', 'near'],
   ['e2-hermanos', 'G G B', 'ok'], ['e2-hermanos', 'ggf', 'near'], ['e2-hermanos', 'G.G.B.', 'ok'],

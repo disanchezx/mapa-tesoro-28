@@ -66,6 +66,7 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e1-poke',
+        display: 'Poke',
         title: 'El acertijo del menú',
         text: [
           'Hay algo que comparten los platos de este menú',
@@ -123,6 +124,7 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e2-andres',
+        display: 'Talleres Robledo',
         title: 'Antes del arte',
         text: [
           'Antes de ser museo, este edificio de ladrillo fue un taller de fundición de la siderúrgica.',
@@ -142,6 +144,7 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e2-mariaisabel',
+        display: 'González',
         title: 'Sala D · La boca y el agua',
         text: [
           'Hay una exposición cuyo título habla de una boca y de agua.',
@@ -161,27 +164,36 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e2-sobrinos1',
-        title: 'Sala A · El registro del río',
+        title: 'Sala A · Un Kim muy famoso',
         text: [
-          'Gala Porras-Kim estudia un registro que viene del río.',
-          '¿Qué palabra de su título significa «del río»?',
+          'Ve a la Sala A y busca el nombre completo de la artista.',
+          'Su apellido esconde un «Kim».',
+          'Si no fuese artista… ¿qué otra cosa sería Kim? 🤔',
         ],
-        answers: ['fluvial'],
+        display: 'Kim Jong-un, dictador de Corea del Norte',
+        answers: [
+          'kim jong un', 'kim jong-un', 'kimjongun', 'jong un',
+          'dictador', 'el dictador', 'dictador de corea del norte', 'dictador de korea del norte',
+          'lider de corea del norte', 'presidente de corea del norte',
+        ],
+        contains: ['jong un', 'jongun', 'dictador', 'corea del norte', 'korea del norte'],
         nearMisses: [
-          { answers: ['rio'], feedback: 'Casi: busca el adjetivo que aparece en el título.' },
-          { answers: ['kim jong un', 'dictador', 'dictador de corea del norte', 'corea del norte'], feedback: 'Jajaja no 😂 Esa Kim es otra. Lee el título en la Sala A.' },
+          { answers: ['kim', 'gala', 'porras kim', 'gala porras kim'], feedback: '¡Esa es la artista! Pero te pregunto por OTRO Kim muy famoso 😏' },
+          { answers: ['kim kardashian', 'kardashian'], feedback: 'Jajaja, buena, pero no. Piensa en un Kim más… autoritario 🚀' },
+          { answers: ['corea', 'korea', 'coreana', 'coreano'], feedback: '¡Caliente! ¿Pero quién es y qué hace? 🚀' },
         ],
         hints: [
-          'Lee el título completo en la Sala A.',
-          'Termina en «-vial».',
+          'La artista es Gala Porras-Kim. Piensa en otro Kim, uno que no hace arte.',
+          'Gobierna Corea del Norte 🚀',
         ],
-        success: '¡Correcto! Y no, no es pariente de Kim Jong-un 😅',
+        success: '¡Jajaja, Kim Jong-un! 🚀 Tranquila: Gala Porras-Kim hace arte, no misiles. Su obra es «El movimiento de un registro fluvial».',
         unlocks: ['juanEsteban', 'isaias', 'nicoll', 'samuel', 'juanLucas'],
         groupLabel: 'Sobrinos · Grupo 1',
       },
       {
         type: 'riddle',
         id: 'e2-diegohermano',
+        display: 'Pedro (Gómez-Egaña)',
         title: 'Salas B y C · Los años de la piedra',
         text: [
           'En «Los años de la piedra» (Salas B, C y Nave central):',
@@ -220,6 +232,7 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e2-hermanos',
+        display: 'G · G · B',
         title: 'Agua, piedra y abejas',
         text: [
           'Toma la primera letra del APELLIDO de:',
@@ -265,6 +278,7 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e2-monica',
+        display: 'Argote',
         title: 'Terraza · Sentir tu peso',
         text: [
           'Sube a la terraza del 4.º piso. ☀️',
@@ -352,6 +366,7 @@ export const STATIONS = [
       {
         type: 'riddle',
         id: 'e3-ninodios',
+        display: 'El Niño Dios',
         title: 'La bicicleta que nunca llegó',
         text: [
           'La bicicleta que nunca llegó',

@@ -8,13 +8,17 @@ const FLOW = STATIONS.flatMap((st, si) =>
 
 // ---------- Estado persistente ----------
 const KEY = 'mapa-tesoro-28-v1';
-const fresh = () => ({ pos: 0, unlocked: [], solved: {}, hints: {}, guessed: {}, cw: {} });
+const fresh = () => ({ pos: 0, maxPos: 0, unlocked: [], solved: {}, hints: {}, guessed: {}, cw: {} });
 let state = load();
 
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...fresh(), ...JSON.parse(raw) };
+    if (raw) {
+      const st = { ...fresh(), ...JSON.parse(raw) };
+      st.maxPos = Math.max(st.maxPos || 0, st.pos);
+      return st;
+    }
   } catch {}
   return fresh();
 }
@@ -39,6 +43,7 @@ function current() { return FLOW[Math.min(state.pos, FLOW.length - 1)]; }
 
 function go(pos) {
   state.pos = Math.max(0, Math.min(FLOW.length - 1, pos));
+  state.maxPos = Math.max(state.maxPos, state.pos);
   save();
   render();
   window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -131,8 +136,9 @@ function wireDocToggles(root) {
 function renderTrail() {
   const step = current();
   const isFinale = step.type === 'finale';
+  const reachedSi = FLOW[state.maxPos].si;
   const islands = STATIONS.map((st, i) => {
-    const cls = isFinale || i < step.si ? 'done' : i === step.si ? 'current' : 'secret';
+    const cls = isFinale || i < step.si ? 'done' : i === step.si ? 'current' : i <= reachedSi ? '' : 'secret';
     // las estaciones futuras son secretas hasta llegar a ellas
     if (cls === 'secret') return `<div class="island secret"><span aria-hidden="true">?</span><span class="lbl">???</span></div>`;
     return `<div class="island ${cls}"><span aria-hidden="true">${st.icon}</span><span class="lbl">${esc(st.place)}</span></div>`;
@@ -152,6 +158,23 @@ function renderTrail() {
 }
 
 // ---------- Vistas ----------
+function displayAnswer(step) {
+  if (step.display) return step.display;
+  const a = String(step.answers?.[0] ?? '');
+  return a.charAt(0).toUpperCase() + a.slice(1);
+}
+
+// Navegación: volver a pasos anteriores y regresar a donde iba
+function navBar() {
+  const back = state.pos > 0;
+  const fwd = state.pos < state.maxPos;
+  if (!back && !fwd) return '';
+  return `<div class="nav-row">
+    ${back ? `<button class="btn ghost" id="navBack">← Anterior</button>` : '<span></span>'}
+    ${fwd ? `<button class="btn ghost" id="navLatest">Volver a donde iba ⏩</button>` : '<span></span>'}
+  </div>`;
+}
+
 function viewIntro(step) {
   return `<section class="card">
     <p class="kicker">${esc(STATIONS[step.si].place)}</p>
@@ -167,6 +190,8 @@ function viewRiddle(step) {
     return `<section class="card">
       <p class="kicker">${esc(STATIONS[step.si].place)}</p>
       <h1 class="title">${esc(step.title)}</h1>
+      ${lines(step.text, 'solved-text')}
+      <div class="answer-pill">Respuesta: <strong>${esc(displayAnswer(step))}</strong></div>
       <div class="success-banner"><span class="big">🎉</span><span>${esc(step.success)}</span></div>
       ${messagesBlock(step)}
       <button class="btn block teal" id="go">Seguir la aventura ➜</button>
@@ -406,9 +431,11 @@ function render() {
   renderTrail();
   const screen = $('#screen');
   const views = { intro: viewIntro, gate: viewIntro, riddle: viewRiddle, hangman: viewHangman, crossword: viewCrossword, finale: viewFinale };
-  screen.innerHTML = (views[step.type] || viewIntro)(step);
+  screen.innerHTML = (views[step.type] || viewIntro)(step) + navBar();
   lastGuess = null;
   $('#go')?.addEventListener('click', next);
+  $('#navBack')?.addEventListener('click', () => go(state.pos - 1));
+  $('#navLatest')?.addEventListener('click', () => go(state.maxPos));
   $('#openBp')?.addEventListener('click', openBackpack);
   if (step.type === 'riddle') wireRiddle(step);
   if (step.type === 'hangman') wireHangman(step);
