@@ -506,32 +506,46 @@ export const STATIONS = [
         "groupLabel": "Sobrinos · Grupo 2"
       },
       {
+        "type": "gate",
+        "id": "e2-terraza",
+        "title": "Ahora, sube a la terraza",
+        "text": [
+          "Sube a la terraza del 4.º piso. ☀️",
+          "Cuando estés arriba, mirando la ciudad, toca el botón."
+        ],
+        "button": "¡Ya estoy en la terraza! ☀️"
+      },
+      {
         "type": "riddle",
         "id": "e2-monica",
         "title": "Terraza · Sentir tu peso",
         "text": [
-          "Sube a la terraza del 4.º piso. ☀️",
-          "Siéntate en una de las «Aves» y siente el peso del otro.",
-          "Escribe el apellido del artista."
+          "Érase una vez una reina abandonada.",
+          "Abandonada hasta que a su príncipe conoció.",
+          "En su primera vez mirando la ciudad,",
+          "¿a dónde el rey a la reina llevó?"
         ],
-        "display": "Argote",
+        "display": "La Calera",
         "answers": [
-          "argote",
-          "ivan argote"
+          "la calera",
+          "calera"
+        ],
+        "contains": [
+          "calera"
         ],
         "nearMisses": [
           {
             "answers": [
-              "ivan"
+              "bogota"
             ],
-            "feedback": "¡Ese es el nombre! Ahora el apellido."
+            "feedback": "¡Casi! Más específica."
           }
         ],
         "hints": [
-          "Las mecedoras para dos se llaman «Aves».",
-          "El artista se llama Iván."
+          "La ciudad bonita de Colombia.",
+          "Huele a asado."
         ],
-        "success": "¡Iván Argote! Tómate una foto en las Aves 📸",
+        "success": "¡La Calera! 🌄 Ahora mira esta ciudad desde aquí y tómate una foto en las Aves 📸",
         "unlocks": [
           "monica"
         ]
@@ -550,14 +564,14 @@ export const STATIONS = [
           "4": "Queda casi enfrente del museo.",
           "6": "Su nombre tiene que ver con el pergamino del café."
         },
-        "button": "Ir a la Estación 3 · La Relación",
+        "button": "Ir a la Estación 3",
         "success": "¡Café Pergamino! Última parada ☕"
       }
     ]
   },
   {
     "id": "pergamino",
-    "name": "La Relación",
+    "name": "",
     "place": "Pergamino",
     "icon": "☕",
     "loaderImage": "img/grace-y-diego.jpg",
@@ -565,7 +579,7 @@ export const STATIONS = [
       {
         "type": "intro",
         "id": "e3-intro",
-        "title": "Estación 3 · La Relación",
+        "title": "Estación 3",
         "text": [
           "Última parada, exploradora. ☕",
           "Aquí las preguntas son sobre ti… y sobre nosotros.",
@@ -706,7 +720,7 @@ export const STATIONS = [
           {
             "answer": "ESTRUCTURA",
             "key": 1,
-            "clue": "Esqueleto que sostiene un edificio (ingeniería civil)."
+            "clue": "Esqueleto que sostiene un edificio."
           },
           {
             "answer": "VIGA",

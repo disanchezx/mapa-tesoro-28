@@ -52,10 +52,10 @@ for (const { text, n } of lines) {
     if (station) { closeStep(); STATIONS.push(station); station = null; }
     if (/^## Mensajes/i.test(t)) { section = 'mensajes'; continue; }
     if (/^## Pantalla de carga/i.test(t)) { section = 'carga'; field = null; continue; }
-    const m = t.match(/^## Estación\s+\d+\s*·\s*(.+)$/);
+    const m = t.match(/^## Estación\s+\d+(?:\s*·\s*(.+))?\s*$/);
     if (!m) { fail(n, `encabezado desconocido: "${t}"`); section = null; continue; }
     section = 'estacion';
-    station = { _line: n, fields: {}, name: m[1].trim(), steps: [] };
+    station = { _line: n, fields: {}, name: (m[1] || '').trim(), steps: [] };
     continue;
   }
 

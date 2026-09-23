@@ -233,7 +233,8 @@ function renderTrail() {
   const pct = (state.pos / (FLOW.length - 1)) * 100;
   const inStation = FLOW.filter((s) => s.si === step.si);
   const idx = inStation.findIndex((s) => s.id === step.id) + 1;
-  const label = isFinale ? '¡Mapa completo!' : `Estación ${step.si + 1} · ${esc(STATIONS[step.si].name)} · ${idx} de ${inStation.length}`;
+  const stName = STATIONS[step.si].name ? ` · ${esc(STATIONS[step.si].name)}` : '';
+  const label = isFinale ? '¡Mapa completo!' : `Estación ${step.si + 1}${stName} · ${idx} de ${inStation.length}`;
   $('#trail').innerHTML = `
     <div class="trail-row">
       <div class="trail-line"></div>

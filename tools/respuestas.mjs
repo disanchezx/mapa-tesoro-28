@@ -23,7 +23,7 @@ let md = `# 🗝️ Respuestas · Mapa del Tesoro 28
 
 let n = 0;
 STATIONS.forEach((st, si) => {
-  md += `\n---\n\n## ${st.icon} Estación ${si + 1} · ${st.name} (${st.place})\n\n`;
+  md += `\n---\n\n## ${st.icon} Estación ${si + 1}${st.name ? ' · ' + st.name : ''} (${st.place})\n\n`;
   for (const s of st.steps) {
     if (s.enabled === false) {
       md += `### ⏸️ ${s.title} _(desactivado: falta completarlo en config.js)_\n\n`;
@@ -31,7 +31,7 @@ STATIONS.forEach((st, si) => {
     }
     if (s.type === 'intro' || s.type === 'finale') continue;
     if (s.type === 'gate') {
-      md += `### ${s.title}\n\n${s.text.join(' ')}\n\n**Respuesta:** pedir la **carta** (el menú) y tocar «${s.button}».\n\n`;
+      md += `### ${s.title}\n\n${s.text.join(' ')}\n\n**Respuesta:** no se escribe nada; se toca «${s.button}».\n\n`;
       continue;
     }
     if (s.type === 'riddle') {
@@ -74,7 +74,7 @@ STATIONS.forEach((st, si) => {
     const a = s.type === 'riddle' ? s.display || cap(s.answers[0])
       : s.type === 'hangman' ? s.phrase
       : s.type === 'crossword' ? s.keyword
-      : s.type === 'gate' ? 'Pedir la carta' : null;
+      : s.type === 'gate' ? `Tocar «${s.button}»` : null;
     if (a) md += `| ${si + 1} · ${st.place} | ${s.title} | **${a}** |\n`;
   }
 });
