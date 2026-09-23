@@ -1,7 +1,7 @@
 // ============================================================
-//  ARCHIVO GENERADO desde mapa-del-tesoro-28.md
+//  ARCHIVO GENERADO desde mapa-del-tesoro-28.md (flujo) y mensajes.md
 //  con: node tools/sync-doc.mjs
-//  Para cambiar el juego, edita el documento y vuelve a sincronizar.
+//  Para cambiar el juego, edita esos documentos y vuelve a sincronizar.
 //  (Una edición urgente aquí se pierde en la próxima sincronización
 //   si no se hace también en el documento.)
 // ============================================================
@@ -40,8 +40,8 @@ export const MESSAGES = {
   "milton": {
     "name": "Milton",
     "relation": "Hermano",
-    "type": "pending",
-    "src": ""
+    "type": "doc",
+    "src": "https://docs.google.com/document/d/1qaZ5kobYQp-7dO7f_P5o9hbNISq7Dg5252yQxiPsGAk/edit?usp=drive_link"
   },
   "mariaIsabel": {
     "name": "Maria Isabel",
@@ -51,6 +51,18 @@ export const MESSAGES = {
   },
   "andres": {
     "name": "Andrés",
+    "relation": "Amigo",
+    "type": "pending",
+    "src": ""
+  },
+  "brayan": {
+    "name": "Brayan",
+    "relation": "Amigo",
+    "type": "pending",
+    "src": ""
+  },
+  "camilo": {
+    "name": "Camilo",
     "relation": "Amigo",
     "type": "pending",
     "src": ""
@@ -88,20 +100,20 @@ export const MESSAGES = {
   "juanLucas": {
     "name": "Juan Lucas",
     "relation": "Sobrino",
-    "type": "pending",
-    "src": ""
+    "type": "audio",
+    "src": "audio/juan-lucas.m4a"
   },
   "naomi": {
     "name": "Naomi",
     "relation": "Sobrina",
-    "type": "pending",
-    "src": ""
+    "type": "audio",
+    "src": "audio/naomi.m4a"
   },
   "milan": {
     "name": "Milan",
     "relation": "Sobrino",
-    "type": "pending",
-    "src": ""
+    "type": "audio",
+    "src": "audio/milan.m4a"
   },
   "ivan": {
     "name": "Ivan",
@@ -263,8 +275,10 @@ export const STATIONS = [
         ],
         "success": "¡Talleres Robledo! De fábrica a museo.",
         "unlocks": [
-          "andres"
-        ]
+          "andres",
+          "brayan"
+        ],
+        "groupLabel": "Amigos"
       },
       {
         "type": "riddle",
@@ -293,8 +307,10 @@ export const STATIONS = [
         ],
         "success": "¡Astrid González! «La boca donde el agua engendra el agua».",
         "unlocks": [
-          "mariaIsabel"
-        ]
+          "mariaIsabel",
+          "camilo"
+        ],
+        "groupLabel": "Amigos"
       },
       {
         "type": "riddle",

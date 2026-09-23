@@ -1,5 +1,6 @@
-// Genera config.js a partir de la guía de producto (../../mapa-del-tesoro-28.md).
-// Solo se lee lo que está entre <!-- APP:INICIO --> y <!-- APP:FIN -->.
+// Genera config.js a partir de dos documentos fuera del repo:
+//   ../../mapa-del-tesoro-28.md → el flujo (solo lo que está entre <!-- APP:INICIO --> y <!-- APP:FIN -->)
+//   ../../mensajes.md           → la tabla de mensajes
 //
 // Uso:
 //   node tools/sync-doc.mjs            → escribe config.js
@@ -8,6 +9,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const DOC = fileURLToPath(new URL('../../mapa-del-tesoro-28.md', import.meta.url));
+const MSG_DOC = fileURLToPath(new URL('../../mensajes.md', import.meta.url));
 const OUT = fileURLToPath(new URL('../config.js', import.meta.url));
 const CHECK = process.argv.includes('--check');
 
@@ -16,6 +18,25 @@ const MSG_TYPES = { audio: 'audio', doc: 'doc', carta: 'doc', drive: 'doc', pend
 
 const errors = [];
 const fail = (line, msg) => errors.push(`línea ${line}: ${msg}`);
+const failMsg = (line, msg) => errors.push(`mensajes.md, línea ${line}: ${msg}`);
+
+// ---------- Mensajes (mensajes.md) ----------
+const MESSAGES = {};
+readFileSync(MSG_DOC, 'utf8').split('\n').forEach((text, i) => {
+  const t = text.trim();
+  const n = i + 1;
+  if (!t.startsWith('|') || /^\|\s*-/.test(t) || /^\|\s*id\s*\|/i.test(t)) return;
+  const cells = t.split('|').slice(1, -1).map((c) => c.trim());
+  const [id, name, relation, tipo, src = ''] = cells; // la columna "Original (Drive)" es solo de referencia
+  const type = MSG_TYPES[(tipo || '').toLowerCase()];
+  if (!id || !name) return failMsg(n, 'fila de mensaje sin id o nombre');
+  if (!type) return failMsg(n, `tipo de mensaje "${tipo}" no válido (audio, doc o pendiente)`);
+  if (MESSAGES[id]) failMsg(n, `el id "${id}" está repetido`);
+  const link = (src.match(/\((https?:[^)]+)\)/) || [])[1] || src.replace(/`/g, '');
+  if (type !== 'pending' && !link) failMsg(n, `el mensaje "${id}" es ${tipo} pero no tiene archivo/link`);
+  MESSAGES[id] = { name, relation, type, src: type === 'pending' ? '' : link };
+});
+if (!Object.keys(MESSAGES).length) errors.push('mensajes.md no tiene ninguna fila de mensajes');
 
 // ---------- Lectura ----------
 const all = readFileSync(DOC, 'utf8').split('\n');
@@ -27,12 +48,11 @@ if (start < 0 || end < 0 || end < start) {
 }
 const lines = all.slice(start + 1, end).map((text, i) => ({ text, n: start + 2 + i }));
 
-// ---------- Bloques: mensajes, estaciones y pasos ----------
+// ---------- Bloques: pantalla de carga, estaciones y pasos ----------
 const ticks = (s) => [...s.matchAll(/`([^`]*)`/g)].map((m) => m[1]);
 const FIELD = /^- \*\*(.+?):\*\*\s*(.*)$/;
 
-let section = null; // 'mensajes' | 'carga' | 'estacion'
-const MESSAGES = {};
+let section = null; // 'carga' | 'estacion'
 const loaderFields = {};
 const STATIONS = [];
 let station = null;
@@ -50,25 +70,12 @@ for (const { text, n } of lines) {
 
   if (/^## /.test(t)) {
     if (station) { closeStep(); STATIONS.push(station); station = null; }
-    if (/^## Mensajes/i.test(t)) { section = 'mensajes'; continue; }
+    if (/^## Mensajes/i.test(t)) { fail(n, 'la tabla de mensajes ahora vive en mensajes.md; borra esta sección'); section = null; continue; }
     if (/^## Pantalla de carga/i.test(t)) { section = 'carga'; field = null; continue; }
     const m = t.match(/^## Estación\s+\d+(?:\s*·\s*(.+))?\s*$/);
     if (!m) { fail(n, `encabezado desconocido: "${t}"`); section = null; continue; }
     section = 'estacion';
     station = { _line: n, fields: {}, name: (m[1] || '').trim(), steps: [] };
-    continue;
-  }
-
-  if (section === 'mensajes') {
-    if (!t.startsWith('|') || /^\|\s*-/.test(t) || /^\|\s*id\s*\|/i.test(t)) continue;
-    const cells = t.split('|').slice(1, -1).map((c) => c.trim());
-    const [id, name, relation, tipo, src = ''] = cells;
-    const type = MSG_TYPES[(tipo || '').toLowerCase()];
-    if (!id || !name) { fail(n, 'fila de mensaje sin id o nombre'); continue; }
-    if (!type) { fail(n, `tipo de mensaje "${tipo}" no válido (audio, doc o pendiente)`); continue; }
-    const link = (src.match(/\((https?:[^)]+)\)/) || [])[1] || src.replace(/`/g, '');
-    if (type !== 'pending' && !link) fail(n, `el mensaje "${id}" es ${tipo} pero no tiene archivo/link`);
-    MESSAGES[id] = { name, relation, type, src: type === 'pending' ? '' : link };
     continue;
   }
 
@@ -163,7 +170,7 @@ function buildStep(raw, stationName) {
   }
   if (F['desbloquea']) {
     s.unlocks = ticks(get('desbloquea'));
-    for (const id of s.unlocks) if (!MESSAGES[id]) fail(F['desbloquea'].line, `"${id}" no está en la tabla de Mensajes`);
+    for (const id of s.unlocks) if (!MESSAGES[id]) fail(F['desbloquea'].line, `"${id}" no está en mensajes.md`);
   }
   if (get('grupo')) s.groupLabel = get('grupo');
   if (get('imagen')) s.image = get('imagen');
@@ -196,14 +203,14 @@ const LOADER = {
 if (!LOADER.phrases.length) LOADER.phrases = ['Revisando el mapa… 🗺️'];
 
 if (errors.length) {
-  console.error('✗ El documento tiene errores:\n  ' + errors.join('\n  '));
+  console.error('✗ Los documentos tienen errores:\n  ' + errors.join('\n  '));
   process.exit(1);
 }
 
 const js = `// ============================================================
-//  ARCHIVO GENERADO desde mapa-del-tesoro-28.md
+//  ARCHIVO GENERADO desde mapa-del-tesoro-28.md (flujo) y mensajes.md
 //  con: node tools/sync-doc.mjs
-//  Para cambiar el juego, edita el documento y vuelve a sincronizar.
+//  Para cambiar el juego, edita esos documentos y vuelve a sincronizar.
 //  (Una edición urgente aquí se pierde en la próxima sincronización
 //   si no se hace también en el documento.)
 // ============================================================

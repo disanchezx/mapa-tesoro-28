@@ -1,8 +1,8 @@
 # Cómo agregar un mensaje nuevo
 
-> **Forma normal (en el computador):** edita la tabla **Mensajes** de `mapa-del-tesoro-28.md` y corre `node tools/sync-doc.mjs`, que regenera `config.js`. Ver la § 5 de ese documento.
+> **Forma normal (en el computador):** edita la tabla de `mensajes.md` (junto a `mapa-del-tesoro-28.md`, fuera del repo) y corre `node tools/sync-doc.mjs`, que regenera `config.js`.
 >
-> **Forma urgente (desde el celular, el día del juego):** edita `config.js` directo en github.com como se explica abajo. Después, replica el cambio en el documento para que la próxima sincronización no lo borre.
+> **Forma urgente (desde el celular, el día del juego):** edita `config.js` directo en github.com como se explica abajo. Después, replica el cambio en `mensajes.md` para que la próxima sincronización no lo borre.
 
 En `config.js` cada mensaje es un bloque dentro de `MESSAGES`:
 
