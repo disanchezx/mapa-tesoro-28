@@ -2,6 +2,7 @@ import * as CONFIG from './config.js';
 const { MESSAGES, STATIONS } = CONFIG;
 const LOADER = CONFIG.LOADER || { title: '¡Vámonos, exploradora!', duration: 2200, phrases: ['Revisando el mapa… 🗺️'] };
 import { check, matches, baseLetter, isLetter, hangmanStatus } from './logic.js';
+import { initMusic, toggleMusic, isMuted, syncMusicDuck } from './music.js';
 
 // ---------- Flujo ----------
 const FLOW = STATIONS.flatMap((st, si) =>
@@ -576,6 +577,7 @@ function render() {
   if (step.type === 'crossword') wireCrossword(step);
   if (step.type === 'finale' && !state.finaleSeen) { state.finaleSeen = true; save(); confetti(); }
   wireDocToggles(screen);
+  setTimeout(syncMusicDuck, 60);
   $('#backpackCount').textContent = state.unlocked.filter((id) => MESSAGES[id]?.type !== 'pending').length;
 }
 
@@ -610,6 +612,7 @@ function openBackpack() {
 function closeOverlay(el) {
   el.querySelectorAll('audio').forEach((a) => a.pause());
   el.hidden = true;
+  setTimeout(syncMusicDuck, 60);
 }
 
 document.querySelectorAll('.overlay').forEach((ov) => {
@@ -697,6 +700,23 @@ function adminAction(a, btn) {
 }
 
 if (new URLSearchParams(location.search).has('diego')) setTimeout(openAdmin, 300);
+
+// ---------- Música ----------
+// El botón se crea aquí (no en index.html) para no depender de un index.html en caché
+function paintSound(btn) {
+  const off = isMuted();
+  btn.textContent = off ? '🔇' : '🔊';
+  btn.setAttribute('aria-pressed', String(off));
+  btn.setAttribute('aria-label', off ? 'Activar música' : 'Silenciar música');
+  btn.classList.toggle('off', off);
+}
+const soundBtn = document.createElement('button');
+soundBtn.className = 'sound';
+soundBtn.id = 'soundBtn';
+$('#backpackBtn').before(soundBtn);
+paintSound(soundBtn);
+soundBtn.addEventListener('click', () => { toggleMusic(); paintSound(soundBtn); });
+initMusic();
 
 render();
 prefetchLetters();

@@ -381,3 +381,22 @@ h1.title { font-family: var(--font-title); font-weight: 400; font-size: 34px; li
 .finale-letter p { margin: 0 0 10px; }
 .finale-letter p:last-of-type { font-family: var(--font-title); font-size: 26px; line-height: 1.15; color: var(--red); margin: 14px 0 4px; }
 .finale-note { font-size: 14px; color: var(--ink-soft); margin: 14px 0 0; }
+
+/* ---------- Botón de música ---------- */
+.sound {
+  flex: none; width: 44px; height: 44px; border-radius: 14px; padding: 0;
+  border: 3px solid var(--ink); background: var(--teal); font-size: 20px;
+  box-shadow: 0 4px 0 var(--ink); display: grid; place-items: center;
+  transition: transform .12s ease, background .2s ease;
+}
+.sound:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.sound.off { background: var(--paper-lo); }
+
+@media (max-width: 400px) {
+  .topbar { gap: 8px; }
+  .compass { width: 42px; height: 42px; }
+  .brand-big { font-size: 22px; }
+  .brand-small { font-size: 11px; }
+  .sound { width: 40px; height: 40px; font-size: 18px; }
+  .backpack { width: 46px; height: 46px; font-size: 23px; }
+}

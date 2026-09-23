@@ -302,8 +302,8 @@ export const STATIONS = [
         "title": "Sala A · Un Kim muy famoso",
         "text": [
           "Ve a la Sala A y busca el nombre completo de la artista.",
-          "Su apellido esconde un «Kim».",
-          "Si no fuese artista… ¿qué otra cosa sería Kim? 🤔"
+          "Su apellido esconde un nombre.",
+          "Si no fuese artista… ¿qué otra cosa sería? 🤔"
         ],
         "display": "Kim Jong-un, dictador de Corea del Norte",
         "answers": [
