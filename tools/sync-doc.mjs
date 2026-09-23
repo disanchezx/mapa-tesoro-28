@@ -14,6 +14,23 @@ const OUT = fileURLToPath(new URL('../config.js', import.meta.url));
 const CHECK = process.argv.includes('--check');
 
 const TYPES = { intro: 'intro', puerta: 'gate', acertijo: 'riddle', ahorcado: 'hangman', crucigrama: 'crossword', final: 'finale' };
+// "## Textos de la app": clave del documento → nombre en la app
+const TEXT_KEYS = {
+  'encabezado pequeño': 'brandSmall', 'encabezado grande': 'brandBig', 'título mochila': 'backpackTitle',
+  'mochila vacía': 'backpackEmpty', 'abrir mi mochila': 'openBackpack', 'reiniciar ruta': 'reset',
+  'confirmar título': 'confirmTitle', 'confirmar texto': 'confirmText', 'confirmar no': 'confirmNo', 'confirmar sí': 'confirmYes',
+  'tesoro': 'treasure', 'mapa completo': 'mapComplete', 'anterior': 'back', 'volver a donde iba': 'resume',
+  'seguir la aventura': 'continue', 'toca para continuar': 'skipLoader',
+  'campo respuesta': 'answerPlaceholder', 'comprobar': 'check', 'respuesta': 'answerLabel', 'pedir pista': 'hint', 'error': 'wrong',
+  'siguiente destino': 'nextDestination', 'intentos': 'attempts', 'usadas': 'used', 'buena gente': 'niceMsg',
+  'campo palabra': 'rowPlaceholder', 'letras': 'letters', 'campo palabra clave': 'keywordPlaceholder', 'abrir': 'openKey', 'abrir el cofre': 'openChest',
+  'desbloqueaste uno': 'unlockedOne', 'desbloqueaste varios': 'unlockedMany', 'mensaje secreto': 'secretName',
+  'mensaje secreto subtítulo': 'secretRel', 'pendiente secreto': 'pendingSecret', 'pendiente': 'pending',
+  'leer carta': 'readLetter', 'cerrar carta': 'closeLetter', 'cargando carta': 'letterLoading', 'carta no carga': 'letterError',
+  'abrir en google docs': 'letterOpenDocs', 'ver en google docs': 'letterLink', 'abrir mensaje': 'openMessage',
+  'ver aquí': 'viewHere', 'cerrar vista': 'closeView',
+};
+const TEXT_LISTS = new Set(['wrong']);
 const MSG_TYPES = { audio: 'audio', doc: 'doc', carta: 'doc', drive: 'doc', pendiente: 'pending' };
 
 const errors = [];
@@ -52,7 +69,8 @@ const lines = all.slice(start + 1, end).map((text, i) => ({ text, n: start + 2 +
 const ticks = (s) => [...s.matchAll(/`([^`]*)`/g)].map((m) => m[1]);
 const FIELD = /^- \*\*(.+?):\*\*\s*(.*)$/;
 
-let section = null; // 'carga' | 'estacion'
+let section = null; // 'carga' | 'textos' | 'estacion'
+const TEXTS = {};
 const loaderFields = {};
 const STATIONS = [];
 let station = null;
@@ -72,6 +90,7 @@ for (const { text, n } of lines) {
     if (station) { closeStep(); STATIONS.push(station); station = null; }
     if (/^## Mensajes/i.test(t)) { fail(n, 'la tabla de mensajes ahora vive en mensajes.md; borra esta sección'); section = null; continue; }
     if (/^## Pantalla de carga/i.test(t)) { section = 'carga'; field = null; continue; }
+    if (/^## Textos de la app/i.test(t)) { section = 'textos'; field = null; continue; }
     const m = t.match(/^## Estación\s+\d+(?:\s*·\s*(.+))?\s*$/);
     if (!m) { fail(n, `encabezado desconocido: "${t}"`); section = null; continue; }
     section = 'estacion';
@@ -83,6 +102,20 @@ for (const { text, n } of lines) {
     const f = t.match(FIELD);
     if (f) { field = loaderFields[f[1].trim().toLowerCase()] = { value: f[2].trim(), sub: [], line: n }; continue; }
     if (/^\s{2,}\S/.test(text) && field) field.sub.push({ text: text.trim(), n });
+    continue;
+  }
+
+  if (section === 'textos') {
+    const f = t.match(FIELD);
+    if (f) {
+      const key = TEXT_KEYS[f[1].trim().toLowerCase()];
+      field = null;
+      if (!key) { fail(n, `texto "${f[1].trim()}" desconocido (las claves no se cambian, solo el texto)`); continue; }
+      if (TEXT_LISTS.has(key)) { field = TEXTS[key] = []; continue; }
+      if (f[2].trim()) TEXTS[key] = f[2].trim();
+      continue;
+    }
+    if (/^\s{2,}-\s*\S/.test(text) && Array.isArray(field)) field.push(text.trim().replace(/^-\s*/, ''));
     continue;
   }
 
@@ -195,6 +228,8 @@ const dup = ids.filter((id, i) => ids.indexOf(id) !== i);
 if (dup.length) errors.push(`ids de pasos repetidos: ${dup.join(', ')}`);
 if (!stationsOut.length) errors.push('no se encontró ninguna estación');
 
+for (const k of TEXT_LISTS) if (Array.isArray(TEXTS[k]) && !TEXTS[k].length) delete TEXTS[k];
+
 const LOADER = {
   title: loaderFields['título']?.value || '¡Vámonos, exploradora!',
   duration: Number(loaderFields['duración']?.value?.replace(/[^\d]/g, '')) || 2200,
@@ -218,6 +253,8 @@ const js = `// ============================================================
 export const MESSAGES = ${JSON.stringify(MESSAGES, null, 2)};
 
 export const LOADER = ${JSON.stringify(LOADER, null, 2)};
+
+export const TEXTS = ${JSON.stringify(TEXTS, null, 2)};
 
 export const STATIONS = ${JSON.stringify(stationsOut, null, 2)};
 `;

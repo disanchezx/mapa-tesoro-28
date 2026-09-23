@@ -22,8 +22,8 @@ export const MESSAGES = {
   "yeimi": {
     "name": "Yeimi",
     "relation": "Hermana",
-    "type": "pending",
-    "src": ""
+    "type": "doc",
+    "src": "https://docs.google.com/document/d/1tfnlHy6filU5i2Tf5mQ_gBH0yFwNv-0Od3xHUeam4Nc/edit?usp=drive_link"
   },
   "monica": {
     "name": "Monica",
@@ -58,14 +58,14 @@ export const MESSAGES = {
   "brayan": {
     "name": "Brayan",
     "relation": "Amigo",
-    "type": "pending",
-    "src": ""
+    "type": "doc",
+    "src": "https://docs.google.com/document/d/1_kKTAJoTtHs_eloSDE1eKPxGhU_4FJnNcFc6YAdoFbI/edit?usp=drive_link"
   },
   "camilo": {
     "name": "Camilo",
     "relation": "Amigo",
-    "type": "pending",
-    "src": ""
+    "type": "audio",
+    "src": "audio/camilo.m4a"
   },
   "elizabeth": {
     "name": "Elizabeth",
@@ -140,6 +140,59 @@ export const LOADER = {
     "Buscando la próxima pista… 🔍",
     "¡Vámonos, vámonos! ⛵"
   ]
+};
+
+export const TEXTS = {
+  "brandSmall": "Mapa del Tesoro",
+  "brandBig": "Grace la Exploradora",
+  "backpackTitle": "🎒 Mi mochila",
+  "backpackEmpty": "Tu mochila está vacía… ¡por ahora! 🗺️",
+  "openBackpack": "🎒 Abrir mi mochila",
+  "reset": "🔄 Reiniciar ruta",
+  "confirmTitle": "¿Estás segura?",
+  "confirmText": "Vas a reiniciar la ruta desde el principio. Se borrará tu progreso, y los acertijos y mensajes volverán a quedar escondidos.",
+  "confirmNo": "No, seguir mi aventura",
+  "confirmYes": "Sí, reiniciar ruta",
+  "treasure": "Tesoro",
+  "mapComplete": "¡Mapa completo!",
+  "back": "← Anterior",
+  "resume": "Volver a donde iba ⏩",
+  "continue": "Seguir la aventura ➜",
+  "skipLoader": "Toca para continuar",
+  "answerPlaceholder": "Tu respuesta…",
+  "check": "Comprobar",
+  "answerLabel": "Respuesta:",
+  "hint": "🦜 Pedir una pista",
+  "wrong": [
+    "Mmm, no es eso. ¡Tú puedes, exploradora!",
+    "Casi… ¡sigue buscando! 🔍",
+    "No es esa, pero vas bien. ¡Otra vez!",
+    "¡Uy! Inténtalo de nuevo 🧭"
+  ],
+  "nextDestination": "Siguiente destino",
+  "attempts": "Intentos:",
+  "used": "Usadas:",
+  "niceMsg": "Soy buena gente, sigue intentando 😉",
+  "rowPlaceholder": "Palabra {n}…",
+  "letters": "letras",
+  "keywordPlaceholder": "La palabra clave…",
+  "openKey": "Abrir 🗝️",
+  "openChest": "Abrir el cofre 💰",
+  "unlockedOne": "¡Desbloqueaste un mensaje!",
+  "unlockedMany": "¡Desbloqueaste mensajes!",
+  "secretName": "Mensaje secreto",
+  "secretRel": "¿Adivinas de quién es? 🤫",
+  "pendingSecret": "Este mensaje aún viene en camino. Llegará a tu mochila 🎒",
+  "pending": "Mensaje de {nombre} – pendiente. Llegará a tu mochila 🎒",
+  "readLetter": "Leer carta 📜",
+  "closeLetter": "Cerrar carta ✕",
+  "letterLoading": "Desenrollando el pergamino… 🗞️",
+  "letterError": "No pude cargar la carta aquí 😕",
+  "letterOpenDocs": "Abrirla en Google Docs",
+  "letterLink": "Ver en Google Docs ↗",
+  "openMessage": "Abrir mensaje 💌",
+  "viewHere": "Ver aquí",
+  "closeView": "Cerrar vista"
 };
 
 export const STATIONS = [

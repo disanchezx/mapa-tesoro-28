@@ -4,6 +4,29 @@ const LOADER = CONFIG.LOADER || { title: '¡Vámonos, exploradora!', duration: 2
 import { check, matches, baseLetter, isLetter, hangmanStatus } from './logic.js';
 import { initMusic, toggleMusic, isMuted, syncMusicDuck } from './music.js';
 
+// Textos de la interfaz: vienen de "## Textos de la app" en la guía; estos son el respaldo
+const T = {
+  brandSmall: 'Mapa del Tesoro', brandBig: 'Grace la Exploradora', backpackTitle: '🎒 Mi mochila',
+  backpackEmpty: 'Tu mochila está vacía… ¡por ahora! 🗺️', openBackpack: '🎒 Abrir mi mochila', reset: '🔄 Reiniciar ruta',
+  confirmTitle: '¿Estás segura?',
+  confirmText: 'Vas a reiniciar la ruta desde el principio. Se borrará tu progreso, y los acertijos y mensajes volverán a quedar escondidos.',
+  confirmNo: 'No, seguir mi aventura', confirmYes: 'Sí, reiniciar ruta',
+  treasure: 'Tesoro', mapComplete: '¡Mapa completo!', back: '← Anterior', resume: 'Volver a donde iba ⏩',
+  continue: 'Seguir la aventura ➜', skipLoader: 'Toca para continuar',
+  answerPlaceholder: 'Tu respuesta…', check: 'Comprobar', answerLabel: 'Respuesta:', hint: '🦜 Pedir una pista',
+  wrong: ['Mmm, no es eso. ¡Tú puedes, exploradora!', 'Casi… ¡sigue buscando! 🔍', 'No es esa, pero vas bien. ¡Otra vez!', '¡Uy! Inténtalo de nuevo 🧭'],
+  nextDestination: 'Siguiente destino', attempts: 'Intentos:', used: 'Usadas:', niceMsg: 'Soy buena gente, sigue intentando 😉',
+  rowPlaceholder: 'Palabra {n}…', letters: 'letras', keywordPlaceholder: 'La palabra clave…', openKey: 'Abrir 🗝️', openChest: 'Abrir el cofre 💰',
+  unlockedOne: '¡Desbloqueaste un mensaje!', unlockedMany: '¡Desbloqueaste mensajes!',
+  secretName: 'Mensaje secreto', secretRel: '¿Adivinas de quién es? 🤫',
+  pendingSecret: 'Este mensaje aún viene en camino. Llegará a tu mochila 🎒', pending: 'Mensaje de {nombre} – pendiente. Llegará a tu mochila 🎒',
+  readLetter: 'Leer carta 📜', closeLetter: 'Cerrar carta ✕', letterLoading: 'Desenrollando el pergamino… 🗞️',
+  letterError: 'No pude cargar la carta aquí 😕', letterOpenDocs: 'Abrirla en Google Docs', letterLink: 'Ver en Google Docs ↗',
+  openMessage: 'Abrir mensaje 💌', viewHere: 'Ver aquí', closeView: 'Cerrar vista',
+  ...CONFIG.TEXTS,
+};
+const fill = (s, vars) => s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m));
+
 // ---------- Flujo ----------
 const FLOW = STATIONS.flatMap((st, si) =>
   st.steps.filter((s) => s.enabled !== false).map((s) => ({ ...s, si }))
@@ -35,12 +58,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const lines = (arr, cls = '') => `<div class="lines ${cls}">${(arr || []).map((l) => `<p>${esc(l)}</p>`).join('')}</div>`;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const WRONG = [
-  'Mmm, no es eso. ¡Tú puedes, exploradora!',
-  'Casi… ¡sigue buscando! 🔍',
-  'No es esa, pero vas bien. ¡Otra vez!',
-  '¡Uy! Inténtalo de nuevo 🧭',
-];
+const WRONG = T.wrong;
 
 function current() { return FLOW[Math.min(state.pos, FLOW.length - 1)]; }
 
@@ -100,8 +118,8 @@ function messageCard(id, n = 0) {
   const m = MESSAGES[id];
   if (!m) return '';
   const secret = isSecret(id);
-  const name = secret ? `Mensaje secreto${n ? ' #' + n : ''}` : m.name;
-  const rel = secret ? '¿Adivinas de quién es? 🤫' : m.relation;
+  const name = secret ? `${T.secretName}${n ? ' #' + n : ''}` : m.name;
+  const rel = secret ? T.secretRel : m.relation;
   const head = (icon) => `
     <div class="msg-head">
       <div class="msg-icon" aria-hidden="true">${secret ? '🤫' : icon}</div>
@@ -113,18 +131,18 @@ function messageCard(id, n = 0) {
   if (m.type === 'doc' && m.src && docId(m.src)) {
     // Google Doc: se lee el texto y se muestra como carta dentro de la app
     return `<div class="msg">${head('📜')}
-      <button class="btn teal block" data-letter="${esc(id)}">Leer carta 📜</button>
+      <button class="btn teal block" data-letter="${esc(id)}">${esc(T.readLetter)}</button>
       <div class="letter-slot"></div>
     </div>`;
   }
   if (m.type === 'doc' && m.src) {
     // archivo de Drive (audio/video/pdf): se abre con el visor de Drive
     return `<div class="msg">${head('💌')}
-      <a class="btn teal" href="${esc(m.src)}" target="_blank" rel="noopener">Abrir mensaje 💌</a>
-      <button class="btn ghost block doc-toggle" data-doc="${esc(docPreview(m.src))}">Ver aquí</button>
+      <a class="btn teal" href="${esc(m.src)}" target="_blank" rel="noopener">${esc(T.openMessage)}</a>
+      <button class="btn ghost block doc-toggle" data-doc="${esc(docPreview(m.src))}">${esc(T.viewHere)}</button>
     </div>`;
   }
-  const note = secret ? 'Este mensaje aún viene en camino. Llegará a tu mochila 🎒' : `Mensaje de ${esc(m.name)} – pendiente. Llegará a tu mochila 🎒`;
+  const note = esc(secret ? T.pendingSecret : fill(T.pending, { nombre: m.name }));
   return `<div class="msg pending">${head('💌')}<div class="note">${note}</div></div>`;
 }
 
@@ -134,7 +152,7 @@ function messagesBlock(step) {
   const label = step.groupLabel && !secret ? `<div class="group-label">${esc(step.groupLabel)}</div>` : '';
   // primero los que ya llegaron, luego los pendientes
   const ids = [...step.unlocks].sort((a, b) => (MESSAGES[a]?.type === 'pending') - (MESSAGES[b]?.type === 'pending'));
-  const title = step.unlocks.length > 1 ? '¡Desbloqueaste mensajes!' : '¡Desbloqueaste un mensaje!';
+  const title = step.unlocks.length > 1 ? T.unlockedMany : T.unlockedOne;
   return `<p class="kicker" style="margin-top:6px">${title}</p>${label}<div class="messages">${ids.map((id, i) => messageCard(id, ids.length > 1 ? i + 1 : 0)).join('')}</div>`;
 }
 
@@ -173,7 +191,7 @@ function letterHtml(text, m) {
   return `<article class="letter">
     <div class="letter-seal" aria-hidden="true">💌</div>
     ${body}
-    <a class="letter-link" href="${esc(m.src)}" target="_blank" rel="noopener">Ver en Google Docs ↗</a>
+    <a class="letter-link" href="${esc(m.src)}" target="_blank" rel="noopener">${esc(T.letterLink)}</a>
   </article>`;
 }
 
@@ -182,21 +200,21 @@ function wireLetters(root) {
     b.addEventListener('click', async () => {
       const m = MESSAGES[b.dataset.letter];
       const slot = b.nextElementSibling;
-      if (slot.innerHTML) { slot.innerHTML = ''; b.textContent = 'Leer carta 📜'; return; }
-      b.textContent = 'Cerrar carta ✕';
+      if (slot.innerHTML) { slot.innerHTML = ''; b.textContent = T.readLetter; return; }
+      b.textContent = T.closeLetter;
       const cached = cachedLetter(m.src);
       if (cached) {
         slot.innerHTML = letterHtml(cached, m);
         fetchLetter(m.src).catch(() => {}); // refresca por si la editaron
         return;
       }
-      slot.innerHTML = `<div class="letter-loading">Desenrollando el pergamino… 🗞️</div>`;
+      slot.innerHTML = `<div class="letter-loading">${esc(T.letterLoading)}</div>`;
       try {
         const text = await fetchLetter(m.src);
         if (slot.isConnected && slot.innerHTML) slot.innerHTML = letterHtml(text, m);
       } catch {
-        slot.innerHTML = `<div class="letter-loading">No pude cargar la carta aquí 😕<br>
-          <a class="btn ghost block" href="${esc(m.src)}" target="_blank" rel="noopener">Abrirla en Google Docs</a></div>`;
+        slot.innerHTML = `<div class="letter-loading">${esc(T.letterError)}<br>
+          <a class="btn ghost block" href="${esc(m.src)}" target="_blank" rel="noopener">${esc(T.letterOpenDocs)}</a></div>`;
       }
     });
   });
@@ -207,13 +225,13 @@ function wireDocToggles(root) {
   root.querySelectorAll('[data-doc]').forEach((b) => {
     b.addEventListener('click', () => {
       const existing = b.nextElementSibling;
-      if (existing?.tagName === 'IFRAME') { existing.remove(); b.textContent = 'Ver aquí'; return; }
+      if (existing?.tagName === 'IFRAME') { existing.remove(); b.textContent = T.viewHere; return; }
       const f = document.createElement('iframe');
       f.className = 'doc-frame';
       f.src = b.dataset.doc;
       f.title = 'Mensaje';
       b.after(f);
-      b.textContent = 'Cerrar vista';
+      b.textContent = T.closeView;
     });
   });
 }
@@ -229,12 +247,12 @@ function renderTrail() {
     if (cls === 'secret') return `<div class="island secret"><span aria-hidden="true">?</span><span class="lbl">???</span></div>`;
     return `<div class="island ${cls}"><span aria-hidden="true">${st.icon}</span><span class="lbl">${esc(st.place)}</span></div>`;
   }).join('');
-  const chest = `<div class="island goal ${isFinale ? 'current' : ''}"><span aria-hidden="true">❌</span><span class="lbl">Tesoro</span></div>`;
+  const chest = `<div class="island goal ${isFinale ? 'current' : ''}"><span aria-hidden="true">❌</span><span class="lbl">${esc(T.treasure)}</span></div>`;
   const pct = (state.pos / (FLOW.length - 1)) * 100;
   const inStation = FLOW.filter((s) => s.si === step.si);
   const idx = inStation.findIndex((s) => s.id === step.id) + 1;
   const stName = STATIONS[step.si].name ? ` · ${esc(STATIONS[step.si].name)}` : '';
-  const label = isFinale ? '¡Mapa completo!' : `Estación ${step.si + 1}${stName} · ${idx} de ${inStation.length}`;
+  const label = isFinale ? esc(T.mapComplete) : `Estación ${step.si + 1}${stName} · ${idx} de ${inStation.length}`;
   $('#trail').innerHTML = `
     <div class="trail-row">
       <div class="trail-line"></div>
@@ -257,8 +275,8 @@ function navBar() {
   const fwd = state.pos < state.maxPos;
   if (!back && !fwd) return '';
   return `<div class="nav-row">
-    ${back ? `<button class="btn ghost" id="navBack">← Anterior</button>` : '<span></span>'}
-    ${fwd ? `<button class="btn ghost" id="navLatest">Volver a donde iba ⏩</button>` : '<span></span>'}
+    ${back ? `<button class="btn ghost" id="navBack">${esc(T.back)}</button>` : '<span></span>'}
+    ${fwd ? `<button class="btn ghost" id="navLatest">${esc(T.resume)}</button>` : '<span></span>'}
   </div>`;
 }
 
@@ -278,10 +296,10 @@ function viewRiddle(step) {
       <p class="kicker">${esc(STATIONS[step.si].place)}</p>
       <h1 class="title">${esc(step.title)}</h1>
       ${lines(step.text, 'solved-text')}
-      <div class="answer-pill">Respuesta: <strong>${esc(displayAnswer(step))}</strong></div>
+      <div class="answer-pill">${esc(T.answerLabel)} <strong>${esc(displayAnswer(step))}</strong></div>
       <div class="success-banner"><span class="big">🎉</span><span>${esc(step.success)}</span></div>
       ${messagesBlock(step)}
-      <button class="btn block teal" id="go">Seguir la aventura ➜</button>
+      <button class="btn block teal" id="go">${esc(T.continue)}</button>
     </section>`;
   }
   const shown = state.hints[step.id] || 0;
@@ -293,12 +311,12 @@ function viewRiddle(step) {
     <h1 class="title">${esc(step.title)}</h1>
     ${lines(step.text, isPoem ? 'poem' : '')}
     <form class="answer" id="form" autocomplete="off">
-      <input id="ans" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Tu respuesta…" aria-label="Tu respuesta" />
-      <button class="btn block" type="submit">Comprobar</button>
+      <input id="ans" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${esc(T.answerPlaceholder)}" aria-label="Tu respuesta" />
+      <button class="btn block" type="submit">${esc(T.check)}</button>
     </form>
     <div class="feedback" id="fb" role="status"></div>
     <div class="hints">${hints}</div>
-    ${more ? `<div class="answer"><button class="btn ghost block" id="hint">🦜 Pedir una pista (${shown + 1}/${step.hints.length})</button></div>` : ''}
+    ${more ? `<div class="answer"><button class="btn ghost block" id="hint">${esc(T.hint)} (${shown + 1}/${step.hints.length})</button></div>` : ''}
   </section>`;
 }
 
@@ -350,9 +368,9 @@ function viewHangman(step) {
 
   const left = FAKE_LIMIT - misses;
   const coins = left > 0
-    ? `Intentos: ${Array.from({ length: FAKE_LIMIT }, (_, i) => `<span class="coin ${i >= left ? 'lost' : ''}">🪙</span>`).join('')}`
-    : `Intentos: <span class="inf">∞</span>`;
-  const nice = misses >= FAKE_LIMIT && !solved ? `<div class="nice-msg">Soy buena gente, sigue intentando 😉</div>` : '';
+    ? `${esc(T.attempts)} ${Array.from({ length: FAKE_LIMIT }, (_, i) => `<span class="coin ${i >= left ? 'lost' : ''}">🪙</span>`).join('')}`
+    : `${esc(T.attempts)} <span class="inf">∞</span>`;
+  const nice = misses >= FAKE_LIMIT && !solved ? `<div class="nice-msg">${esc(T.niceMsg)}</div>` : '';
 
   const hintList = Object.entries(step.hints || {})
     .filter(([n]) => misses >= Number(n))
@@ -367,7 +385,7 @@ function viewHangman(step) {
 
   if (solved) {
     return `<section class="card">
-      <p class="kicker">Siguiente destino</p>
+      <p class="kicker">${esc(T.nextDestination)}</p>
       <h1 class="title">${esc(step.title)}</h1>
       <div class="board">${board}</div>
       <div class="success-banner"><span class="big">🗺️</span><span>${esc(step.success)}</span></div>
@@ -375,14 +393,14 @@ function viewHangman(step) {
     </section>`;
   }
   return `<section class="card" id="card">
-    <p class="kicker">Siguiente destino</p>
+    <p class="kicker">${esc(T.nextDestination)}</p>
     <h1 class="title">${esc(step.title)}</h1>
     ${step.clue ? `<div class="place-clue"><span aria-hidden="true">🧭</span><span>${esc(step.clue)}</span></div>` : ''}
     ${lines(step.text)}
     <div class="board">${board}</div>
     <div class="coins">${coins}</div>
     ${nice}
-    <div class="used">${[...guessed].length ? 'Usadas: ' + [...guessed].map((g) => g.toUpperCase()).join(' ') : ''}</div>
+    <div class="used">${[...guessed].length ? esc(T.used) + ' ' + [...guessed].map((g) => g.toUpperCase()).join(' ') : ''}</div>
     <div class="kb">${kb}</div>
     <div class="hints">${hintList}</div>
   </section>`;
@@ -444,7 +462,7 @@ function viewCrossword(step) {
       <div class="success-banner"><span class="big">🗝️</span><span>${esc(step.keyword)}</span></div>
       ${lines(step.success, 'poem')}
       ${messagesBlock(step)}
-      <button class="btn block gold" id="go">Abrir el cofre 💰</button>
+      <button class="btn block gold" id="go">${esc(T.openChest)}</button>
     </section>`;
   }
 
@@ -452,8 +470,8 @@ function viewCrossword(step) {
     return `<section class="card" id="card">${head}${gridHtml}
       <p><strong>${esc(step.keywordPrompt)}</strong></p>
       <form class="answer" id="form" autocomplete="off">
-        <input id="ans" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="La palabra clave…" aria-label="Palabra clave" />
-        <button class="btn block gold" type="submit">Abrir 🗝️</button>
+        <input id="ans" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${esc(T.keywordPlaceholder)}" aria-label="Palabra clave" />
+        <button class="btn block gold" type="submit">${esc(T.openKey)}</button>
       </form>
       <div class="feedback" id="fb" role="status"></div>
     </section>`;
@@ -463,10 +481,10 @@ function viewCrossword(step) {
   return `<section class="card" id="card">${head}
     ${lines(step.text)}
     ${gridHtml}
-    <div class="clue-box"><span class="n">${cs.sel + 1}.</span> ${esc(r.clue)} <span class="len">(${r.answer.length} letras)</span></div>
+    <div class="clue-box"><span class="n">${cs.sel + 1}.</span> ${esc(r.clue)} <span class="len">(${r.answer.length} ${esc(T.letters)})</span></div>
     <form class="answer" id="form" autocomplete="off">
-      <input id="ans" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Palabra ${cs.sel + 1}…" aria-label="Respuesta fila ${cs.sel + 1}" />
-      <button class="btn block" type="submit">Comprobar</button>
+      <input id="ans" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${esc(fill(T.rowPlaceholder, { n: cs.sel + 1 }))}" aria-label="Respuesta fila ${cs.sel + 1}" />
+      <button class="btn block" type="submit">${esc(T.check)}</button>
     </form>
     <div class="feedback" id="fb" role="status"></div>
   </section>`;
@@ -516,8 +534,8 @@ function viewFinale(step) {
       ${(step.text || []).map((l) => `<p>${esc(l)}</p>`).join('')}
     </article>
     <div class="answer">
-      <button class="btn block" id="openBp" style="background:var(--purple)">🎒 Abrir mi mochila</button>
-      <button class="btn ghost block" data-reset>🔄 Reiniciar ruta</button>
+      <button class="btn block" id="openBp" style="background:var(--purple)">${esc(T.openBackpack)}</button>
+      <button class="btn ghost block" data-reset>${esc(T.reset)}</button>
     </div>
     ${step.note ? `<p class="finale-note">${esc(step.note)}</p>` : ''}
   </section>`;
@@ -538,7 +556,7 @@ function showLoader(image) {
     <p class="loader-title">${esc(LOADER.title)}</p>
     <div class="loader-phrase">${esc(phrase)}</div>
     <div class="loader-path" aria-hidden="true"><div class="fill"></div><span class="walker">🧭</span><span class="x">❌</span></div>
-    <div class="loader-skip">Toca para continuar</div>`;
+    <div class="loader-skip">${esc(T.skipLoader)}</div>`;
   document.body.appendChild(el);
   const close = () => { el.classList.add('out'); setTimeout(() => el.remove(), 350); };
   const t = setTimeout(close, reduceMotion ? Math.min(LOADER.duration, 1200) : LOADER.duration);
@@ -595,7 +613,7 @@ document.addEventListener('keydown', (e) => {
 function openBackpack() {
   const list = $('#backpackList');
   if (!state.unlocked.length) {
-    list.innerHTML = `<div class="empty">Tu mochila está vacía… ¡por ahora! 🗺️</div>`;
+    list.innerHTML = `<div class="empty">${esc(T.backpackEmpty)}</div>`;
   } else {
     // agrupa por estación en el orden del juego
     const blocks = STATIONS.map((st) => {
@@ -606,7 +624,7 @@ function openBackpack() {
     list.innerHTML = blocks;
     wireDocToggles(list);
   }
-  list.insertAdjacentHTML('beforeend', `<div class="bp-footer"><button class="btn ghost block" data-reset>🔄 Reiniciar ruta</button></div>`);
+  list.insertAdjacentHTML('beforeend', `<div class="bp-footer"><button class="btn ghost block" data-reset>${esc(T.reset)}</button></div>`);
   $('#backpack').hidden = false;
 }
 
@@ -620,6 +638,10 @@ document.querySelectorAll('.overlay').forEach((ov) => {
   ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) closeOverlay(ov); });
 });
 $('#backpackBtn').addEventListener('click', openBackpack);
+// textos del encabezado y la mochila (están en index.html, pero se pueden cambiar desde la guía)
+document.querySelector('.brand-small').textContent = T.brandSmall;
+document.querySelector('.brand-big').textContent = T.brandBig;
+$('#bpTitle').textContent = T.backpackTitle;
 
 // ---------- Reiniciar ruta (con confirmación) ----------
 // El diálogo se crea aquí (no en index.html) para no depender de un index.html en caché
@@ -627,11 +649,11 @@ document.body.insertAdjacentHTML('beforeend', `
   <div class="overlay center" id="confirm" hidden>
     <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="cfTitle" aria-describedby="cfText">
       <div class="dialog-icon" aria-hidden="true">🧭</div>
-      <h2 id="cfTitle">¿Estás segura?</h2>
-      <p id="cfText">Vas a reiniciar la ruta desde el principio. Se borrará tu progreso, y los acertijos y mensajes volverán a quedar escondidos.</p>
+      <h2 id="cfTitle">${esc(T.confirmTitle)}</h2>
+      <p id="cfText">${esc(T.confirmText)}</p>
       <div class="dialog-actions">
-        <button class="btn teal block" id="confirmNo">No, seguir mi aventura</button>
-        <button class="btn ghost block" id="confirmYes">Sí, reiniciar ruta</button>
+        <button class="btn teal block" id="confirmNo">${esc(T.confirmNo)}</button>
+        <button class="btn ghost block" id="confirmYes">${esc(T.confirmYes)}</button>
       </div>
     </div>
   </div>`);
